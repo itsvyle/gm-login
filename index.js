@@ -11,8 +11,10 @@ class Login {
         cookie_options,
         token_lifetime,
         default_username,
-        options
+        options,
+        remember_me_default
     }) {
+        this.remember_me = remember_me_default;
         if (typeof(onReady) !== "function") onReady = () => {};
         this.ui = new LoginUI(this);
         if (!flags || typeof(flags) !== "object") flags = {};
