@@ -1,0 +1,113 @@
+html, body {
+	font-family: Verdana,sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.dark-mode {
+  background-color: black;
+  color: white;
+}
+
+form {
+  border: 3px solid #f1f1f1;
+}
+
+.dark-mode form {
+	border: 3px solid #545454;
+}
+
+input[type=text], input[type=password] {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.dark-mode input[type=text], .dark-mode input[type=password] {
+	background-color: black;
+	color: white;
+}
+
+.dark-mode input[type=text]::placeholder, .dark-mode input[type=password]::placeholder {
+	color: #c7c7c7;
+}
+
+button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+
+.cancelbtn {
+  width: auto;
+  padding: 10px 18px;
+  background-color: #f44336;
+}
+
+.imgcontainer {
+  text-align: center;
+  margin: 24px 0 12px 0;
+}
+
+img.avatar {
+  width: 20%;
+  max-width: 315px;
+}
+
+.container {
+  padding: 16px;
+}
+
+span.psw {
+  float: right;
+  padding-top: 16px;
+}
+
+@media screen and (max-width: 300px) {
+  span.psw {
+    display: block;
+    float: none;
+  }
+  .cancelbtn {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  img.avatar {
+	  width: 40%;
+  }
+  
+  h1 {
+	  font-size: 1.5em;
+  }
+}
+
+h1 {
+	white-space: nowrap;
+}
+
+
+.error {
+	color: #f44336;
+	font-weight: bold;
+}
+
+.bottom {
+	background-color:#f1f1f1
+}
+
+.dark-mode .bottom {
+	background-color: #242424;
+}
