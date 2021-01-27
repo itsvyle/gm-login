@@ -29,8 +29,16 @@ class LoginUser {
     }
 
     get cookie() {
-        let d = new Date(this.token.expires);
-        return `token=${this.token.t}; Expires=${d.toUTCString()}; Path=/` + this.login.cookie_options;
+        let d;
+        if (this.tokens.temp === true) {
+            d = "";
+        } else {
+            d = new Date(this.token.expires);
+            d.toUTCString();
+            d = ` Expires=${d};`;
+        }
+        
+        return `token=${this.token.t};${d} Path=/` + this.login.cookie_options;
     }
 
     get revoke_cookie() {
@@ -57,7 +65,8 @@ class LoginToken {
     get token() {return this.t;}
     get dateCreated() {return new Date(this.d);}
     get username() {return this.u;}
-    get stay_logged_in() {return this.s === 1;}
+    get temp() {return this.s !== 1;}
+
 
     get expires() {
         return (this.s === 1) ? this.d + this.login.token_lifetime : this.d + 60 * 60 * 1000;
