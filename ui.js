@@ -28,6 +28,8 @@ class LoginUI {
         d = d.split("{error}").join(error || "");
         if (this.login.remember_me === true) {
             d = d.split("{remember_me}").join("checked");
+        } else {
+            d = d.split("{remember_me}").join("");   
         }
         return d;
     }
