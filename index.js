@@ -225,7 +225,7 @@ class Login {
             return [403,"Only the creator can edit the 'accounts_admin' flag"];
         }
 
-        if (_tf.flags !== old.flags.flags) {
+        if (_tf.flags !== old.flags.flags && !editor.isCreator) {
             return [403,"Only the creator can edit flags"];
         }
         // let ol = this.credentials.get(d.u);
