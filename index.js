@@ -56,6 +56,7 @@ class Login {
             let nm = "[Login] Welcome to the login !. The default username and password are 'default'. Use it to login and change it";
             if (par.credentials.size < 1) {
                 console.log(nm);
+                par.addCredential("default","default",0);
             } else {
                 if (par.credentials.has("default")) {
                     if (par.credentials.p == "default") {
