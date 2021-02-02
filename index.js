@@ -53,6 +53,16 @@ class Login {
                 par.save();
             },2500);
             onReady(par);
+            let nm = "[Login] Welcome to the login !. The default username and password are 'default'. Use it to login and change it";
+            if (par.credentials.size < 1) {
+                console.log(nm);
+            } else {
+                if (par.credentials.has("default")) {
+                    if (par.credentials.p == "default") {
+                        console.log(nm);
+                    }
+                }
+            }
         }
 
         this.fetchCredentials().then(() => {
@@ -296,14 +306,13 @@ class Login {
         };
     }
 
-   get getUser() {
+    get getUser() {
         return function (req,res,next) {
             req.user = par.checkReq(req);
             next();
         };
     }
 
-    
     express(loginRoute) {
         if (loginRoute.endsWith("/") !== true) {loginRoute += "/";}
         let par = this;
