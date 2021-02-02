@@ -296,6 +296,14 @@ class Login {
         };
     }
 
+   get getUser() {
+        return function (req,res,next) {
+            req.user = par.checkReq(req);
+            next();
+        };
+    }
+
+    
     express(loginRoute) {
         if (loginRoute.endsWith("/") !== true) {loginRoute += "/";}
         let par = this;
