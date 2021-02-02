@@ -34,6 +34,12 @@ app.use(loginRoute,login.router);
 app.use(login.express(loginRoute));
 //After here put everything that needs a login
 
+//By using the 'login.expressAuths', it checks that the user has the provided flags to access the page
+app.get("/video",[login.expressAuths(['see_video']),function (req,res) {
+    res.send("VIDEO");
+}]);
+
+
 app.get("/",function (req,res) {
     res.send("You are logged in as " + req.user.username + "!");
 });
