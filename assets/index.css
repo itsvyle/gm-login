@@ -1,0 +1,73 @@
+html,html body,html div,html h1,html h2,html h3,html h4,html h5,html h6,html ul,html ol,html li,html p,html blockquote,pre,html form,html fieldset,html table,html th,html td {
+    margin: 0;
+    padding: 0;
+}
+
+body, body * {
+    font-family: Verdana, sans-serif;
+}
+
+a, a:visited {
+    color: #0b03fc;
+}
+
+.bold {font-weight: bold;}
+
+div.user {
+    margin-top: 15px;
+    box-shadow: 5px 10px 10px #888888;
+    border-radius: 10px;
+    border: 2.5px #e8e8e8 solid;
+    padding: 20px;
+}
+
+div.user:last-of-type {
+    margin-bottom: 15px;
+}
+
+.user-name {
+    margin-bottom: 10px;
+    font-size: 1.4rem;
+    font-weight: bold;
+}
+
+.user-options {
+    text-align: center;
+    margin-top: 7px;
+}
+
+
+div.form-container input[type=text],div.form-container input[type=password], select,div.form-container input[type=number] {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+div.form-container input[type=submit] {
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+div.form-container input[type=submit]:hover {
+  background-color: #45a049;
+}
+
+div.form-container {
+  border-radius: 5px;
+  background-color: #f2f2f2;
+  padding: 20px;
+}
+
+div.form-container table {
+    width: 100%;
+}

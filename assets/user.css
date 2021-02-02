@@ -1,0 +1,103 @@
+html,html body,html div,html h1,html h2,html h3,html h4,html h5,html h6,html ul,html ol,html li,html p,html blockquote,pre,html form,html fieldset,html table,html th,html td {
+    margin: 0;
+    padding: 0;
+}
+
+body, body * {
+    font-family: Verdana, sans-serif;
+}
+
+.--table-borders {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.--table-borders td,.--table-borders th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+.footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: #cccccc;
+  color: black;
+  padding: 15px 0;
+  /* text-align: center; */
+}
+
+#save_button {
+    cursor: pointer;
+    background-color: #00ca6e;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    margin-right: 2.5%;
+    margin-left: 2.5%;
+    padding: 9px 0;
+    width: 95%;
+}
+
+#save_button:disabled {
+    color: lightgray;
+    opacity: 0.7;
+    cursor: no-drop;
+}
+
+#save_button div {
+    margin: 0 auto;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+input[type=text],input[type=password], select,input[type=number] {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+#content-container {
+    padding: 15px;
+}
+
+.label {
+    color: #3d3d3d;
+}
+
+.user-name {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+
+.title {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+#flags, #sessions {
+    margin-top: 5px;
+    border-spacing: 8px;
+}
+
+.revoke-button {
+    color: white;
+    width: 100%;
+    background-color: red;
+    border: 0;
+    border-radius: 6px;
+    padding: 7px 3px;
+    cursor: pointer;
+}
+
+.revoke-button:disabled {
+    cursor: no-drop;
+}
