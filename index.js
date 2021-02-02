@@ -52,6 +52,7 @@ class Login {
             setInterval(function () {
                 par.save();
             },2500);
+            par.refreshTokens();
             onReady(par);
             let nm = "[Login] Welcome to the login !. The default username and password are 'default'. Use it to login and change it";
             if (par.credentials.size < 1) {
@@ -209,6 +210,14 @@ class Login {
         return c;
     }
 
+    refreshTokens() {
+        this.tokens.forEach((t) => {
+            if (!t.valid) {
+                t.revoke();
+            }
+        });
+    }
+
     _editCredential(oldUName,editor,d) {
         if (!this.accounts_admin) return null;
         if (!editor || !(editor instanceof LoginCredential)) return null;
@@ -225,8 +234,8 @@ class Login {
             return [403,"Only the creator can edit the 'accounts_admin' flag"];
         }
 
-        if (_tf.flags !== old.flags.flags && !editor.isCreator) {
-            return [403,"Only the creator can edit flags"];
+        if (_tf.flags !== old.flags.flags && old === editor && !editor.isCreator) {
+            return [403,"You cannot edit your own flags"];
         }
         // let ol = this.credentials.get(d.u);
         // if (!ol) {
@@ -249,6 +258,7 @@ class Login {
             this.credentials.set(d.u,this.credentials.get(oldUName));
             this.credentials.delete(oldUName);
         }
+        this.refreshTokens();
         return this.credentials.get(d.u);
     }
 
