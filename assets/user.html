@@ -27,10 +27,10 @@
             <p class="user-name">{username} <button id="delete_button" class="revoke-button" style="float: right;width: unset;" onclick="deleteAccount();" {can_delete}>Delete account</button></p>
             <p class="label" style="margin-bottom: 6px;"><i>Changing any of the settings will delete all the user's tokens</i></p>
             <p class="label">User Name:</p>
-            <input type="text" id="f-username" value="{username}" onkeyup="refresh();">
+            <input type="text" id="f-username" value="{username}" onkeyup="refresh();" autocorrect="off" autocapitalize="none">
 
             <p class="label" style="margin-top: 6px;">Password:</p>
-            <input type="text" id="f-password" value="{password}" onkeyup="refresh();">
+            <input type="text" id="f-password" value="{password}" onkeyup="refresh();" autocorrect="off" autocapitalize="none">
 
             <hr>
             <p class="title">Authorizations: </p>
