@@ -15,10 +15,10 @@
 
 		  <div class="container">
 			<label for="uname"><b>Username</b></label>
-			<input type="text" placeholder="Enter Username" name="u" value="{default_username}" required>
+			<input type="text" placeholder="Enter Username" name="u" value="{default_username}" autocorrect="off" autocapitalize="none" required>
 
 			<label for="psw"><b>Password</b></label>
-			<input type="password" placeholder="Enter Password" name="p" required>
+			<input type="password" placeholder="Enter Password" name="p" autocorrect="off" autocapitalize="none" required>
 			{redirect_to}
 			<label class="error">{error}</label>
 			<button type="submit">Login</button>
