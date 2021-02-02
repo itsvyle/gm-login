@@ -19,9 +19,9 @@ function refreshAccountsAdmin() {
         var fls = document.getElementById("flags").getElementsByClassName("flag-checkbox");
         for(var i = 0;i < fls.length;i++) {
             var fl = fls[i];
-            if (fl.name !== null) {//"accounts_admin"
+            if (fl.name == "accounts_admin" || base.editingSelf == true) {
                 fl.disabled = true;
-                fl.title = "Only creator can edit flags";
+                fl.title = "Only creator can edit this flag";
             }
         }
     }
