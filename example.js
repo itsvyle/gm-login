@@ -1,33 +1,32 @@
-const express = require("express");
-var {Util} = require("./gm-login/utilities");
-const app = Util.express({
-    post: true
-});
+var express = require("express");
+const app = express();
+const port = 3000;
+var bodyParser = require('body-parser');
+var Login = require("./login");
 
-var Login = require("./gm-login");
+app.use(bodyParser.json({limit: "50mb"}));
+app.use(bodyParser.urlencoded({limit: "50mb",extended: true}));
 
+
+const loginRoute = "/accounts";
 const login = new Login({
     useReplDatabases: true,
     accounts_admin: true,
     onReady: function () {
-        //login.login("admin","pwd",true).then(console.log).catch(console.error);
-        //console.log(login.check("bfTYuTdlABaBdqxyzgaYTwfQqT6GbdFlzSMZ2Tob"));
-        app.connect(true);
+        app.listen(3000,function () {
+            console.log("App listening at port: " + String(port)); 
+        });
+    },
+    flags: {
+        
     }
 });
 
-app.use("/l",login.router(express.Router()));
+//Before here put everything that does not need a login
+app.use(loginRoute,login.router);
+app.use(login.express(loginRoute));
+//After here put everything that needs a login
 
-app.use("*",function (req,res,next) {
-    req.user = login.checkReq(req);
-    if (!req.user) {
-        res.redirect("/l/login.html");
-    } else {
-        next();
-    }
-});
-
-app.use("*",function (req,res) {
-    res.set("content-type","text/json");
-    return res.send(JSON.stringify(login.checkReq(req),null,2));
+app.get("/",function (req,res) {
+    res.send("You are logged in as " + req.user.username + "!");
 });
