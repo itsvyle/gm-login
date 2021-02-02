@@ -24,6 +24,13 @@ const login = new Login({
 
 //Before here put everything that does not need a login
 app.use(loginRoute,login.router);
+
+
+//If you want to do a page in which you may use the user, uncomment the following line:
+//app.use(login.getUser);
+//Here, you can the put anything in which you use the user without specialy being logged in
+
+
 app.use(login.express(loginRoute));
 //After here put everything that needs a login
 
