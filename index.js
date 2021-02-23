@@ -81,6 +81,8 @@ class Login {
             this.options.default_username = default_username;
         }
 
+        this.loginRoute = "/";
+
     }
 
     get accounts_admin() {return ("accounts_admin" in this.flag_values);}
@@ -282,11 +284,15 @@ class Login {
             //console.log(auths,checkCreator,req);
             if (!req.user) {
                 res.status(403);
-                res.send(par.ui.errorPage(403,"Unauthorized",'You must be logged in to view this page'));
+                res.send(par.ui.errorPage(403,"Unauthorized",'You must be logged in to view this page<br><a href="' + par.loginRoute + 'login.html?to=' + encodeURIComponent(req.path) + '">Login or switch account</a>'));
                 return;
             }
             if (checkCreator !== false && req.user.isCreator === true) {
                 return next();
+            } else if (auths.length <= 0) {
+                res.status(403);
+                res.send(par.ui.errorPage(403,"Unauthorized",'You must be the website owner to view this page<br><a href="' + par.loginRoute + 'login.html?to=' + encodeURIComponent(req.path) + '">Login or switch account</a>'));
+                return;
             }
             let fl = req.user.flags;
             let missing = [];
@@ -313,7 +319,7 @@ class Login {
                 text = "You are missing some permissions (flags)";
             }
             res.status(403);
-            return res.send(par.ui.errorPage(403,"Unauthorized",text));
+            return res.send(par.ui.errorPage(403,"Unauthorized",text + ' <a href="' + par.loginRoute + 'login.html?to=' + encodeURIComponent(req.path) + '">Login or switch account</a>'));
         };
     }
 
@@ -327,6 +333,7 @@ class Login {
 
     express(loginRoute) {
         if (loginRoute.endsWith("/") !== true) {loginRoute += "/";}
+        this.loginRoute = loginRoute;
         let par = this;
         return function (req,res,next) {
             req.user = par.checkReq(req);
