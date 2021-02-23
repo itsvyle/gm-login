@@ -27,6 +27,9 @@ class LoginUI {
         d = d.split("{default_username}").join(s("default_username",""));
         d = d.split("{error}").join(error || "");
         d = d.split("{redirect_to}").join((!redirectTo) ? "" : `<input type="text" style="display: none;" name="to" value="${redirectTo}">`);
+        if (this.login.options.dark === true) {
+            d = d.split("{body_class}").join("dark-mode");
+        }
         if (this.login.remember_me === true) {
             d = d.split("{remember_me}").join("checked");
         } else {
