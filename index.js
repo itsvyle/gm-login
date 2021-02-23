@@ -330,7 +330,7 @@ class Login {
         return function (req,res,next) {
             req.user = par.checkReq(req);
             if (!req.user) {
-                res.redirect(loginRoute + "login.html");
+                res.redirect(loginRoute + "login.html?to=" + encodeURIComponent(req.path));
             } else {
                 next();
             }
@@ -355,7 +355,7 @@ class Login {
                 res.set("Set-cookie",req.user.revoke_cookie);
                 req.user.token.revoke();
             }
-            res.send(par.ui.getLoginPage(req.query.error));
+            res.send(par.ui.getLoginPage(req.query.error,req.query.to));
         });
 
         router.post("/login",function (req,res) {
@@ -368,10 +368,10 @@ class Login {
             let r = (req.body.r == "1" || req.body.r === 1);
             par.login(u,p,r,ip).then((user) =>{
                 res.set("set-cookie",user.cookie);
-                res.redirect('/');
+                res.redirect(req.body.to || "/");
                 res.end();
             }).catch((err) => {
-                err = "login.html?error=" + err;
+                err = "login.html?error=" + err + ((!!req.body.to) ? "&to=" + encodeURIComponent(req.body.to) : "");
                 res.redirect(err);
                 res.end();
             });
