@@ -318,6 +318,7 @@ class Login {
     }
 
     get getUser() {
+        let par = this;
         return function (req,res,next) {
             req.user = par.checkReq(req);
             next();
