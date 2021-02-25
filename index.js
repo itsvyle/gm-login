@@ -23,7 +23,7 @@ class Login {
         this.ui = new LoginUI(this);
         if (!flags || typeof(flags) !== "object") flags = {};
         if (Object.values(flags).includes(0) || Object.keys(flags).includes("accounts_admin")) {
-            throw "The flag value '0' is reserved for 'accounts_admin'";
+            throw new Error("The flag value '0' is reserved for 'accounts_admin'");
         }
 
         this.options = (!!options && typeof(options) === "object") ? options : {};
