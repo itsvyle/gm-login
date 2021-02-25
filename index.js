@@ -284,14 +284,14 @@ class Login {
             //console.log(auths,checkCreator,req);
             if (!req.user) {
                 res.status(403);
-                res.send(par.ui.errorPage(403,"Unauthorized",'You must be logged in to view this page<br><a href="' + par.loginRoute + 'login.html?to=' + encodeURIComponent(req.path) + '">Login or switch account</a>'));
+                res.send(par.ui.errorPage(403,"Unauthorized",'You must be logged in to view this page<br><a href="' + par.loginRoute + 'login.html?to=' + encodeURIComponent(req.originalUrl) + '">Login or switch account</a>'));
                 return;
             }
             if (checkCreator !== false && req.user.isCreator === true) {
                 return next();
             } else if (auths.length <= 0) {
                 res.status(403);
-                res.send(par.ui.errorPage(403,"Unauthorized",'You must be the website owner to view this page<br><a href="' + par.loginRoute + 'login.html?to=' + encodeURIComponent(req.path) + '">Login or switch account</a>'));
+                res.send(par.ui.errorPage(403,"Unauthorized",'You must be the website owner to view this page<br><a href="' + par.loginRoute + 'login.html?to=' + encodeURIComponent(req.originalUrl) + '">Login or switch account</a>'));
                 return;
             }
             let fl = req.user.flags;
@@ -319,7 +319,7 @@ class Login {
                 text = "You are missing some permissions (flags)";
             }
             res.status(403);
-            return res.send(par.ui.errorPage(403,"Unauthorized",text + ' <a href="' + par.loginRoute + 'login.html?to=' + encodeURIComponent(req.path) + '">Login or switch account</a>'));
+            return res.send(par.ui.errorPage(403,"Unauthorized",text + ' <a href="' + par.loginRoute + 'login.html?to=' + encodeURIComponent(req.originalUrl) + '">Login or switch account</a>'));
         };
     }
 
@@ -338,7 +338,7 @@ class Login {
         return function (req,res,next) {
             req.user = par.checkReq(req);
             if (!req.user) {
-                res.redirect(loginRoute + "login.html?to=" + encodeURIComponent(req.path));
+                res.redirect(loginRoute + "login.html?to=" + encodeURIComponent(req.originalUrl));
             } else {
                 next();
             }
