@@ -200,7 +200,7 @@ class Login {
         if (flags instanceof Flags) flags = flags.flags;
         if (typeof(flags) !== "number") flags = 0;
         if (!username || !password || typeof(username) != "string" || typeof(password) != "string") return false;
-        if (this.credentials.has(username)) this.credentials.get(c.u).revokeAllTokens();
+        if (this.credentials.has(username)) this.credentials.get(username).revokeAllTokens();
         let c = {
             u: username,
             p: password,
