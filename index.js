@@ -35,11 +35,11 @@ class Login {
         this.flag_values = flags;
 
         Object.defineProperty(this,'db',{value: null,writable: true});
-        if (useReplDatabases !== false) {
+		if (typeof(useReplDatabases) === "object") {
+			this.db = useReplDatabases;
+		} else if (useReplDatabases !== false) {
             let r = "";
             this.db = new (require("@replit" + "/" + "database"));
-        } else {
-            this.db = useReplDatabases;
         }
 
 
