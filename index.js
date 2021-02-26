@@ -63,7 +63,7 @@ class Login {
                 par.addCredential("default","default",0);
             } else {
                 if (par.credentials.has("default")) {
-                    if (par.credentials.p == "default") {
+                    if (par.credentials.get("default").p == "default") {
                         console.log(nm);
                     }
                 }
@@ -129,14 +129,14 @@ class Login {
     }
 
     get must_save() {
-        return (!(Util.deepEqual(this.tokens.toObject(Util.classToJSON),this.last_tokens) && Util.deepEqual(this.credentials.toObject(Util.classToJSON),this.last_credentials)));
+        return (!(Util.deepEqual(this.tokens.toObject(),this.last_tokens) && Util.deepEqual(this.credentials.toObject(),this.last_credentials)));
     }
 
     save(force) {
         if (!this.must_save && force !== true) return;
         let par = this;
         let ended = {t: false,c: false};
-        this.db.set("gm_login_credentials",this.credentials.toObject(Util.classToJSON)).then(() => {
+        this.db.set("gm_login_credentials",this.credentials.toObject()).then(() => {
             ended.c = true;
             if (Object.values(ended).includes(false) === false) par._saved();
         });
