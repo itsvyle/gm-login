@@ -38,7 +38,10 @@ class Login {
         if (useReplDatabases !== false) {
             let r = "";
             this.db = new (require("@replit" + "/" + "database"));
+        } else {
+            this.db = useReplDatabases;
         }
+
 
         this.credentials = new Collection();
         this.tokens = new Collection();
