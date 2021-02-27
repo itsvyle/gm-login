@@ -63,9 +63,8 @@ class LoginUser {
         if (this.token.temp === true) {
             d = "";
         } else {
-            d = new Date(this.token.expires);
-            d.toUTCString();
-            d = ` Expires=${d};`;
+            d = ` Expires=${(new Date(this.token.expires)).toUTCString()};`;
+            console.log(d);
         }
         
         return `token=${this.token.t};${d} Path=/` + this.login.cookie_options;
