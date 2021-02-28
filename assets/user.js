@@ -148,9 +148,9 @@ function saveSettings(force) {
                 return disabledAll(true);
             }
             firstSave = t;
-            refresh();
         }
         disabledAll(false);
+        refresh();
     });
 }
 
