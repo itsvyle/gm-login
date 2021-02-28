@@ -143,6 +143,7 @@ function saveSettings(force) {
                 }
             }
             not.addMessage("Saved settings",null,4000,true);
+            window.location.reload();
             if (r.headers['x-logout'] === "1") {
                 window.location.href = "login.html";
                 return disabledAll(true);
