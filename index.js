@@ -341,6 +341,8 @@ class Login {
         return function (req,res,next) {
             req.user = par.checkReq(req);
             if (!req.user) {
+		    res.status(403);
+		    res.send("You are not logged in");
                 res.redirect(loginRoute + "login.html?to=" + encodeURIComponent(req.originalUrl));
             } else {
                 next();
