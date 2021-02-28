@@ -124,7 +124,7 @@ function saveSettings(force) {
     }
     if (!t) {return refresh();}
     disabledAll(true);
-    console.log("passed",force);
+    //console.log("passed",force);
     gm.request("api/save_settings?" + gm.buildQuery({
             uname: base.uname,
             force: force
@@ -143,11 +143,12 @@ function saveSettings(force) {
                 }
             }
             not.addMessage("Saved settings",null,4000,true);
-            window.location.reload();
             if (r.headers['x-logout'] === "1") {
                 window.location.href = "login.html";
                 return disabledAll(true);
             }
+            firstSave = t;
+            refresh();
         }
         disabledAll(false);
     });
