@@ -387,7 +387,9 @@ class Login {
         this.loginRoute = loginRoute;
         let par = this;
         return function (req,res,next) {
-            req.user = par.checkReq(req);
+            if (!req.user) {
+                req.user = par.checkReq(req);
+            }
             if (!req.user) {
                 //res.status(403);
                 res.redirect(loginRoute + "login.html?to=" + encodeURIComponent(req.originalUrl));
