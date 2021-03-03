@@ -326,6 +326,54 @@ class Login {
         };
     }
 
+    expressAuthsAPI(auths,checkCreator,hideMissingPermissions) {
+        if (!Array.isArray(auths)) {
+            auths = [auths];
+        }
+        if (typeof(checkCreator) !== "boolean") {checkCreator = true;}
+        let par = this;
+        return function (req,res,next) {
+            //console.log(auths,checkCreator,req);
+            if (!req.user) {
+                res.status(403);
+                return res.send("You should be logged in to use this service");
+            }
+            if (checkCreator !== false && req.user.isCreator === true) {
+                return next();
+            } else if (auths.length <= 0) {
+                res.status(403);
+                res.send("You must be the website creator to use this service")
+                return;
+            }
+            let fl = req.user.flags;
+            let missing = [];
+            for(let f of auths) {
+                if (typeof(f) === "number") f = String(f);
+                if (!f || typeof(f) !== "string") continue;
+                if (!fl.has(f)) {
+                    missing.push(f);
+                }
+            }
+            if (missing.length < 1) {
+                return next();
+            }
+            let text = '';
+            if (hideMissingPermissions !== true) {
+                for(let m of missing) {
+                    if (text !== "") {
+                        text += ', ';
+                    }
+                    text += m;
+                }
+                text = "You are missing the following permissions (flags): " + text + " to use this service";
+            } else {
+                text = "You are missing some permissions (flags) to use this service";
+            }
+            res.status(403);
+            return res.send(text);            
+        };
+    }
+
     get getUser() {
         let par = this;
         return function (req,res,next) {
