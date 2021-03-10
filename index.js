@@ -6,6 +6,7 @@ const {LoginCredential,LoginUser,LoginToken} = require("./structures.js");
 const LoginUI = require("./ui.js")
 const {Util,Collection,Flags} = require("./utilities");
 const fs = require("fs");
+var ReplITDB = null;
 class Login {
     constructor({
         useReplDatabases,
@@ -38,8 +39,8 @@ class Login {
 		if (typeof(useReplDatabases) === "object") {
 			this.db = useReplDatabases;
 		} else if (useReplDatabases !== false) {
-            let r = "";
-            this.db = new (require("@replit" + "/" + "database"));
+			if (!ReplITDB) ReplITDB = getREPLITDB();
+            this.db = new ReplITDB();
         }
 
 
@@ -702,6 +703,37 @@ class Login {
         return router;
     }
 
+}
+
+function getREPLITDB() {
+    let bd = "@replit/database";
+    var og = require(bd);
+    return class DatabaseFixed extends og {
+        constructor(key) {
+            super(key);
+        }
+
+        /**
+        * Sets a key
+        * @param {String} key Key
+        * @param {any} value Value
+        */
+        async set(key, value) {
+            const strValue = JSON.stringify(value);
+            let opts = {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: encodeURIComponent(key) + "=" + encodeURIComponent(strValue),
+            };
+            if (!Util.request.request) {
+                bd = "request";
+                opts.request = require(bd);
+            }
+            await Util.request(this.key,opts)
+
+            return this;
+        }
+    }
 }
 
 module.exports = Login;
