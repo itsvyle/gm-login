@@ -125,8 +125,8 @@ class Login {
     }
 
     _saved() {
-        this.last_tokens = this.tokens.toObject();
-        this.last_credentials = this.credentials.toObject();
+        this.last_tokens = this.tokens.toObject(obj => Object.assign({},obj));
+        this.last_credentials = this.credentials.toObject(obj => Object.assign({},obj));
     }
 
     get must_save() {
