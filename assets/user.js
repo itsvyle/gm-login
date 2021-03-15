@@ -27,6 +27,15 @@ function refreshAccountsAdmin() {
     }
 }
 
+function random_password() {
+    var i = document.getElementById("f-password");
+    if (base.machine) {
+        i.value = gm.randomString(40);
+    } else {
+        i.value = gm.randomString(8);
+    }
+}
+
 
 function _toSave() {
     var r = {
