@@ -45,6 +45,7 @@ class Login {
 
 
         this.credentials = new Collection();
+        this.machine_credentials = new Collection();
         this.tokens = new Collection();
 
         Object.defineProperty(this,'last_tokens',{value: {},writable: true});
@@ -117,7 +118,8 @@ class Login {
                 for(let n in d) {
                     let v = d[n];
                     if (!v.u) continue;
-                    par.credentials.set(v.u,new LoginCredential(par,v));
+                    let c = new LoginCredential(par,v);
+                    (c.machine) ? par.machine_credentials.set(v.u,c) : par.credentials.set(v.u,c);
                 }
                 resolve(par);
             }).catch(reject);
@@ -126,23 +128,27 @@ class Login {
 
     _saved() {
         this.last_tokens = this.tokens.toObject(obj => Object.assign({},obj));
-        this.last_credentials = this.credentials.toObject(obj => Object.assign({},obj));
+        this.last_credentials = this.credentials.map(obj => Object.assign({},obj)).concat(this.machine_credentials.map(obj => Object.assign({},obj)));
     }
 
     get must_save() {
-        return (!(Util.deepEqual(this.tokens.toObject(),this.last_tokens) && Util.deepEqual(this.credentials.toObject(),this.last_credentials)));
+        return (!(Util.deepEqual(this.tokens.toObject(),this.last_tokens) && Util.deepEqual(this.credentials.array().concat(this.machine_credentials.array()),this.last_credentials)));
     }
 
     save(force) {
-        if (!this.must_save && force !== true) return;
         let par = this;
+        let sc = this.credentials.array().concat(this.machine_credentials.array());
+        let st = this.tokens.toObject();
+        if (force !== true) {
+            if (Util.deepEqual(this.last_tokens,st) && Util.deepEqual(this.last_credentials,sc)) return null;
+        }
         let ended = {t: false,c: false};
-        this.db.set("gm_login_credentials",this.credentials.toObject()).then(() => {
+        this.db.set("gm_login_credentials",sc).then(() => {
             ended.c = true;
             if (Object.values(ended).includes(false) === false) par._saved();
         });
 
-        this.db.set("gm_login_tokens",this.tokens.toObject()).then(() => {
+        this.db.set("gm_login_tokens",st).then(() => {
             ended.t = true;
             if (Object.values(ended).includes(false) === false) par._saved();
         });
@@ -156,7 +162,8 @@ class Login {
             t: token,
             d: Date.now(),
             u: c.u,
-            s: (stayLoggedIn === true || stayLoggedIn === 1) ? 1 : 0
+            s: (stayLoggedIn === true || stayLoggedIn === 1) ? 1 : 0,
+            m: c.m
         };
         if (ip) t.ip = ip;
         t = new LoginToken(this,id,t);
@@ -188,31 +195,33 @@ class Login {
     check(token) {
         if (!token) return null;
         let t = null;
-        this.tokens.forEach((to) => {
+        t = this.tokens.find((to) => {
             if (!!to.t && token === to.t && to.expired === false && to.revoked === false) {
-                t = to;
+                return true;
             }
+            return false;
         });
         if (!t) return null;
         return new LoginUser(this,t.credentials,t);
     }
 
-    addCredential(username,password,flags) {
+    addCredential(username,password,flags,mode = "users") {
         if (flags instanceof Flags) flags = flags.flags;
         if (typeof(flags) !== "number") flags = 0;
         if (!username || !password || typeof(username) != "string" || typeof(password) != "string") return false;
-        if (this.credentials.has(username)) this.credentials.get(username).revokeAllTokens();
+        let crede = (mode === "machines") ? this.machine_credentials : this.credentials;
+        if (crede.has(username)) crede.get(username).revokeAllTokens();
         let c = {
             u: username,
             p: password,
             f: flags,
             d: Date.now()
         };
+        if (mode == "machines") c.m = true;
         if (this.credentials.size < 1) {c.creator = 1;}
         c = new LoginCredential(this,c);
         
-        
-        this.credentials.set(c.u,c);
+        crede.set(c.u,c);
         return c;
     }
 
@@ -224,15 +233,16 @@ class Login {
         });
     }
 
-    _editCredential(oldUName,editor,d) {
+    _editCredential(oldUName,editor,d,mode = "users") {
         if (!this.accounts_admin) return null;
         if (!editor || !(editor instanceof LoginCredential)) return null;
         if (!editor.flags.has("accounts_admin") && !editor.isCreator) {
             return [403,"You do not have the authorization to do this"];
         }
         if (!d || typeof(d) !== "object" || !d.u || !d.p || !("f" in d) || typeof(d.f) !== "number") return false;
+        let crede = (mode == "machines") ? this.machine_credentials : this.credentials;
         let _tf = new Flags(this.flag_values,d.f);
-        let old = this.credentials.get(oldUName);
+        let old = crede.get(oldUName);
         if (!old) {
             return [404,"User with username '" + oldUName + "' does not exist"];
         }
@@ -253,23 +263,23 @@ class Login {
         if (old.flags.has("accounts_admin") && old !== editor && !editor.isCreator) {
             return [403,"Only the creator can edit the other admin's settings"];
         }
-        this.credentials.get(oldUName).revokeAllTokens();
-        this.credentials.get(oldUName).u = d.u;
-        this.credentials.get(oldUName).p = d.p;
-        this.credentials.get(oldUName).f = d.f;
+        crede.get(oldUName).revokeAllTokens();
+        crede.get(oldUName).u = d.u;
+        crede.get(oldUName).p = d.p;
+        crede.get(oldUName).f = d.f;
         if (old.p !== d.p || old.f !== d.f || old.u !== d.u) {
             old.revokeAllTokens();
         }
         if (d.u !== oldUName) {
-            this.credentials.set(d.u,this.credentials.get(oldUName));
-            this.credentials.delete(oldUName);
+            crede.set(d.u,crede.get(oldUName));
+            crede.delete(oldUName);
         }
         this.refreshTokens();
-        return this.credentials.get(d.u);
+        return crede.get(d.u);
     }
 
     checkReq(req) {
-        let cookies = Util.parseCookies(req.headers.cookie || "");
+        let cookies = (!!req.headers.authorization) ? {token: req.headers.authorization} : Util.parseCookies(req.headers.cookie || "");
         if (!cookies || !cookies.token) return null;
         return this.check(cookies.token);
     }
@@ -278,7 +288,7 @@ class Login {
         return new Flags(this.flag_values,val);
     }
 
-    expressAuths(auths,checkCreator,hideMissingPermissions) {
+    expressAuths(auths,checkCreator,allowMachine = false) {
         if (!Array.isArray(auths)) {
             auths = [auths];
         }
@@ -291,9 +301,18 @@ class Login {
                 res.send(par.ui.errorPage(403,"Unauthorized",'You must be logged in to view this page<br><a href="' + par.loginRoute + 'login.html?to=' + encodeURIComponent(req.originalUrl) + '">Login or switch account</a>'));
                 return;
             }
+            var isMachine = (req.user.machine);
+            const exit = (status,text) => {res.status(status);return res.send(text);};
+            if (allowMachine !== true && req.user.machine) {
+                if (isMachine) return exit(403,'A machine cannot access this page');
+                res.send(par.ui.errorPage(403,"Unauthorized",'A machine cannot access this page'));
+                return;
+            }
             if (checkCreator !== false && req.user.isCreator === true) {
                 return next();
             } else if (auths.length <= 0) {
+                if (isMachine) return exit(403,'You must be the website owner to view this page');
+
                 res.status(403);
                 res.send(par.ui.errorPage(403,"Unauthorized",'You must be the website owner to view this page<br><a href="' + par.loginRoute + 'login.html?to=' + encodeURIComponent(req.originalUrl) + '">Login or switch account</a>'));
                 return;
@@ -310,24 +329,22 @@ class Login {
             if (missing.length < 1) {
                 return next();
             }
+            if (isMachine) return exit(403,'You are missing the following flags to access this page: ' + missing.join(", "));
+
             let text = '';
-            if (hideMissingPermissions !== true) {
-                for(let m of missing) {
-                    if (text !== "") {
-                        text += ', ';
-                    }
-                    text += '<span class="inline-code">' +  m + '</span>';
+            for(let m of missing) {
+                if (text !== "") {
+                    text += ', ';
                 }
-                text = "You are missing the following permissions (flags): " + text;
-            } else {
-                text = "You are missing some permissions (flags)";
+                text += '<span class="inline-code">' +  m + '</span>';
             }
+            text = "You are missing the following permissions (flags): " + text;
             res.status(403);
             return res.send(par.ui.errorPage(403,"Unauthorized",text + ' <a href="' + par.loginRoute + 'login.html?to=' + encodeURIComponent(req.originalUrl) + '">Login or switch account</a>'));
         };
     }
 
-    expressAuthsAPI(auths,checkCreator,hideMissingPermissions) {
+    expressAuthsAPI(auths,checkCreator,allowMachine = false) {
         if (!Array.isArray(auths)) {
             auths = [auths];
         }
@@ -338,6 +355,10 @@ class Login {
             if (!req.user) {
                 res.status(403);
                 return res.send("You should be logged in to use this service");
+            }
+            if (allowMachine !== true && req.user.machine) {
+                res.send('A machine cannot access this page');
+                return;
             }
             if (checkCreator !== false && req.user.isCreator === true) {
                 return next();
@@ -358,18 +379,7 @@ class Login {
             if (missing.length < 1) {
                 return next();
             }
-            let text = '';
-            if (hideMissingPermissions !== true) {
-                for(let m of missing) {
-                    if (text !== "") {
-                        text += ', ';
-                    }
-                    text += m;
-                }
-                text = "You are missing the following permissions (flags): " + text + " to use this service";
-            } else {
-                text = "You are missing some permissions (flags) to use this service";
-            }
+            let text = "You are missing the following permissions (flags): " + missing.join(", ") + " to use this service";
             res.status(403);
             return res.send(text);            
         };
@@ -392,8 +402,12 @@ class Login {
                 req.user = par.checkReq(req);
             }
             if (!req.user) {
-                //res.status(403);
-                res.redirect(loginRoute + "login.html?to=" + encodeURIComponent(req.originalUrl));
+                if (req.headers.authorization) {
+                    res.status(403);
+                    return res.send("NOT LOGGED IN");
+                } else {
+                    res.redirect(loginRoute + "login.html?to=" + encodeURIComponent(req.originalUrl));
+                }
             } else {
                 next();
             }
@@ -412,6 +426,65 @@ class Login {
             req.user = par.checkReq(req);
             next();
         });
+
+        router.post("/machines/login",function (req,res) {
+            let {password,username} = req.body;
+            var ip = getClientAddress(req);
+            if (!password || !username) {
+                res.status(400);
+                return res.send("Missing arguments");
+            }
+            if (req.user && req.user.machine) {
+                req.user.token.revoke();
+            }
+            let c = par.machine_credentials.get(username);
+            if (!c || c.password !== password) {
+                res.status(403);
+                return res.send("Incorrect credentials");
+            }
+            let t = par._createToken(c,true,getClientAddress(req));
+            if (!t || t.revoked === true) {
+                return reject("Encountered inernal error");
+            }
+            let url = req.protocol + '://' + req.get('host') + req.originalUrl.slice(0,-"login".length);
+            //return console.log(url);
+            res.set("content-type","application/json");
+            let credentials = t.credentials;
+            let r = {
+                token_id: t.id,
+                token: t.t,
+                expires: (new Date(t.expires)).toISOString(),
+                login_url: url + "login",
+                logout_url: url + "logout",
+                username: credentials.u,
+                flags: credentials.f
+            };
+            if (req.query.format == "xml") {
+                r = Util.toXML(r);
+            } else {
+                r = JSON.stringify(r,null,2);
+            }
+
+            res.send(r);
+        });
+
+        router.get("/machines/logout",function (req,res) {
+            console.log(req.user);
+            if (!req.user || !req.user.machine) {
+                return res.send("NOT OK");
+            }
+            req.user.token.revoke();
+            res.send("OK");
+        });
+
+        router.use("*",function (req,res,next) {
+            if (req.user && req.user.machine) {
+                res.status(403);
+                return res.send("Machines don't have access to this");
+            }
+            return next();
+        });
+
 
         router.get(["/login.html","/login"],function (req,res) {
             if (req.user) {
@@ -449,7 +522,7 @@ class Login {
         });
 
         var checkIsAdmin = function (req,res) {
-            if (!req.user) {
+            if (!req.user || req.user.machine) {
                 res.status(403);
                 res.send(par.ui.errorPage(403,"Unauthorized",'You are not allowed to do this <a href="login.html">Login or switch account</a>'));
                 return false;
@@ -477,6 +550,28 @@ class Login {
             res.send(par.ui.getAccountsPage(req.user.credentials));
         });
 
+        router.get(["/machines/","/machines/index.html"],function (req,res) {
+            let u = req._parsedUrl.pathname;
+            if (u === "/machines" || u === "/machines/") {
+                u = req.originalUrl;
+                if (!u.endsWith("/")) {u += '/';}
+                return res.redirect(u + "index.html");
+            }
+            if (!checkIsAdmin(req,res)) {return;}
+            res.send(par.ui.getAccountsPage(req.user.credentials,"machines"));
+        });
+
+        router.get(["/machines/user","/machines/user.html"],function (req,res) {
+            if (!checkIsAdmin(req,res)) {return;}
+            let uname = req.query.u;
+            if (!uname) {
+                res.status(400);
+                return res.send("Missing parameters");
+            }
+            res.set("content-type","text/html");
+            res.send(par.ui.getUserPage(uname,req.user,"machines"));
+        });
+
         router.get(["/user","/user.html"],function (req,res) {
             if (!checkIsAdmin(req,res)) {return;}
             let uname = req.query.u;
@@ -495,7 +590,8 @@ class Login {
                 res.status(400);
                 return res.send("Missing arguments");
             }
-            let u = par.credentials.get(uname);
+
+            let u = (req.query.machine == "1") ? par.machine_credentials.get(uname) : par.credentials.get(uname);
             if (!u) {
                 res.status(404);
                 return res.send("User does not exist");
@@ -534,8 +630,9 @@ class Login {
                 res.status(400);
                 return res.send("Invalid request body");
             }
+            let crede = (d.machine === true) ? par.machine_credentials : par.credentials;
             let isOwner = req.user.credentials.isOwner;
-            let ol = par.credentials.get(d.u);
+            let ol = crede.get(d.u);
             if (ol) {
                 if (!isOwner && ol.isOwner) {
                     res.status(403);
@@ -555,7 +652,7 @@ class Login {
                     return res.send("A user with this name already exists. Continuing will recreate it from scratch. Are you sure you want to continue ?");
                 }
             }
-            let n = par.addCredential(d.u,d.p,0);
+            let n = par.addCredential(d.u,d.p,0,(d.machine === true) ? "machines" : "users");
             if (!n) {
                 res.status(500);
                 return res.send("Error creating account");
@@ -575,7 +672,8 @@ class Login {
                 res.status(400);
                 return res.send("Missing parameters");
             }
-            let u = par.credentials.get(uname);
+            let crede = (req.query.machine == "1") ? par.machine_credentials : par.credentials;
+            let u = crede.get(uname);
             if (!u) {
                 res.status(404);
                 return res.send("User does not exist");
@@ -594,8 +692,8 @@ class Login {
             flags.fromObject(fls);
             j.f = flags.flags;
 
-            if (par.credentials.has(j.u) && force !== true) {
-                let ol = par.credentials.get(j.u);
+            if (crede.has(j.u) && force !== true) {
+                let ol = crede.get(j.u);
                 if (ol !== u) {
                     res.status(201);
                     return res.send("A user with this username already exist. Are you sure you want to overwrite it ?");
@@ -604,7 +702,7 @@ class Login {
             if (u === req.user.credentials) {
                 res.set("x-logout","1");
             }
-            let n = par._editCredential(uname,req.user.credentials,j);
+            let n = par._editCredential(uname,req.user.credentials,j,((req.query.machine == "1") ? "machines" : "users"));
             if (!n) {
                 res.status(500);
                 return res.send("Error saving edits");
@@ -629,7 +727,8 @@ class Login {
             }
 
             let isCreator = req.user.credentials.isCreator;
-            let ol = par.credentials.get(uname);
+            let crede = (req.query.machine == "1") ? par.machine_credentials : par.credentials;
+            let ol = crede.get(uname);
 
             if (!ol) {
                 res.status(404);
@@ -662,8 +761,8 @@ class Login {
             if (ol === req.user.credentials) {
                 m = 1;
             }
-            par.credentials.delete(ol.u);
-            res.redirect((m === 1) ? "login.html" : "index.html");
+            crede.delete(ol.u);
+            res.redirect((m === 1) ? "login.html" : (!ol.m ? "index.html" : "machines/index.html"));
             res.end();
         });
 
