@@ -7,12 +7,16 @@ class LoginCredential {
         this.f = d.f;//Flags
         this.d = d.d;
 
+        this.m = d.m || false;//machine
+
         if (d.creator === 1) {
             this.creator = 1;
         }
 
         if (typeof(this.f) !== 'number') this.f = 0;
     }
+
+    get machine() {return this.m;}
 
     get isCreator() {return (this.creator === 1);}
 
@@ -39,7 +43,7 @@ class LoginCredential {
 
     get tokens() {
         let uname = this.u;
-        return this.login.tokens.filter(t => t.u === uname && t.valid);
+        return this.login.tokens.filter(t => t.u === uname && t.valid && t.m === this.m);
     }
 
     revokeAllTokens() {
@@ -57,6 +61,9 @@ class LoginUser {
         this.username = this.credentials.username;
         this.flags = this.credentials.flags;
     }
+
+    get isMachine() {return this.credentials.m;}
+    get machine() {return this.credentials.m;}
 
     get cookie() {
         let d;
@@ -88,11 +95,14 @@ class LoginToken {
         this.u = d.u;//username
         this.s = d.s;//stay logged in
 
+        this.m = d.m || false;//is machine
+
         if (d.ip) {this.ip = d.ip;}
 
         Object.defineProperty(this,"revoked",{value: false,writable: true});
         if (!this.credentials) this.revoke();
     }
+    get machine() {return this.m;}
 
     get token() {return this.t;}
     get dateCreated() {return new Date(this.d);}
@@ -122,7 +132,7 @@ class LoginToken {
     }
 
     get credentials() {
-        return this.login.credentials.get(this.u);
+        return (this.m) ? this.login.machine_credentials.get(this.u) : this.login.credentials.get(this.u);
     }
 
 }
