@@ -34,6 +34,7 @@ function random_password() {
     } else {
         i.value = gm.randomString(8);
     }
+    refresh();
 }
 
 
