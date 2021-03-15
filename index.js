@@ -469,7 +469,6 @@ class Login {
         });
 
         router.get("/machines/logout",function (req,res) {
-            console.log(req.user);
             if (!req.user || !req.user.machine) {
                 return res.send("NOT OK");
             }
