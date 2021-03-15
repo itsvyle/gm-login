@@ -81,6 +81,7 @@ function revokeToken(id,caller) {
     if (!!caller) {caller.disabled = true;}
     gm.request("api/revokeToken?" + gm.buildQuery({
         uname: base.uname,
+        machine: base.machine,
         id: id  
     }),{
         notifier: not
@@ -127,6 +128,7 @@ function saveSettings(force) {
     //console.log("passed",force);
     gm.request("api/save_settings?" + gm.buildQuery({
             uname: base.uname,
+            machine: base.machine,
             force: force
         }),{
         method: "POST",
@@ -156,7 +158,10 @@ function saveSettings(force) {
 
 function deleteAccount() {
     if (confirm("Are you sure that you wish to delete this account") === true) {
-        window.location.href = ("deleteUser?uname=" + encodeURIComponent(base.uname));
+        window.location.href = ("deleteUser?" + gm.buildQuery({
+            uname: base.uname,
+            machine: base.machine
+        }));
     }
 }
 
