@@ -2,7 +2,8 @@
 
 <head>
 	<title>Edit User - {username}</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">    
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    {base_href}   
 	<script src="assets/gm/gm.js" type="application/javascript"></script>
     <script src="assets/user.js" type="application/javascript"></script>
 	<link href="assets/gm/gm.css" rel="stylesheet">
@@ -25,6 +26,7 @@
         {error}
         <div id="content-container" style="{content-container-style}">
             <p class="user-name">{username} <button id="delete_button" class="revoke-button" style="float: right;width: unset;" onclick="deleteAccount();" {can_delete}>Delete account</button></p>
+            {account_note}
             <p class="label" style="margin-bottom: 6px;"><i>Changing any of the settings will delete all the user's tokens</i></p>
             <p class="label">User Name:</p>
             <input type="text" id="f-username" value="{username}" onkeyup="refresh();" autocorrect="off" autocapitalize="none">
