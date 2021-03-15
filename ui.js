@@ -60,7 +60,7 @@ class LoginUI {
 
 
 
-    accounts(editor) {
+    accounts(editor,mode = "users") {
         if (!editor) {return "Missing editor parameter";}
         let r = [];
         var prim = function (c) {
@@ -77,15 +77,17 @@ class LoginUI {
             r.push(a);
         };
         prim = prim.bind(this);
-        this.login.credentials.forEach(prim);
+        (mode == "machines") ? this.login.machine_credentials.forEach(prim) : this.login.credentials.forEach(prim);
 
         return r.sort(Util.sortBy("timestamp"));
     }
 
-    getAccountsPage(editor) {
+    getAccountsPage(editor,mode = "users") {
         if (!editor) {return "Missing editor parameter";}
         let con = "";
-        let accounts = this.accounts(editor);
+        if (mode == "machines") con += '<h1 style="margin: 4px;" id="machines-indicator">Machines</h1>';
+        let accounts = this.accounts(editor,mode);
+        let bef = (mode == "machines") ? 'machines/' : "";
         for(let a of accounts) {
             if (a.isCreator && editor.isCreator === false) continue;
             con += `<div class="user">
@@ -94,7 +96,7 @@ class LoginUI {
                 <p>Account created: <span class="bold">${a.date.toLocaleString("en-US",{ timeZone: 'America/New_York' }) + " (NY time)"}</span></p>
                 <p>Sessions open: <span class="bold">${a.sessionsCount}</span></p>
                 <div class="user-options">
-                    <a href="user.html?u=${a.name}">View or edit user</a>
+                    <a href="${bef}user.html?u=${a.name}">View or edit user</a>
                 </div>
             </div>`;
         }
@@ -110,21 +112,24 @@ class LoginUI {
         }
         if (!d) return "Error getting page";
         d = d.split("{content}").join(con);
+        d = d.split("{base_href}").join((mode === "machines") ? '<base href="../">' : '');
         return d;
 
     }
 
-    user(uname) {
-        if (!this.login.credentials.has(uname)) {
+    user(uname,mode = "users") {
+        let coll = (mode == "machines") ? this.login.machine_credentials : this.login.credentials;
+        if (!coll.has(uname)) {
             return null;
         }
-        let c = this.login.credentials.get(uname);
+        let c = coll.get(uname);
         let r = {
             name: c.u,
             password: c.p,
             isCreator: (c.creator === 1),
             sessions: [],
             flags: c.flags,
+            machine: c.machine
         };
         let tokens = c.tokens;
         tokens.forEach((t) => {
@@ -142,8 +147,8 @@ class LoginUI {
         return r;
     }
 
-    getUserPage(uname,editor) {
-        let u = this.user(uname);
+    getUserPage(uname,editor,mode = "users") {
+        let u = this.user(uname,mode);
         if (!editor) {
             return "Internal error";
         }
@@ -157,7 +162,7 @@ class LoginUI {
             } catch (err) {}
         }
         if (!d) return "Error getting page";
-
+        d = d.split("{base_href}").join((mode === "machines") ? '<base href="../">' : '');
         var triggerError = function (er) {
             d = d.replace("{error}",er);
             d = d.replace("{content-container-style}","display: none;");
@@ -181,6 +186,11 @@ class LoginUI {
         d = d.replace("{content-container-style}","");
         d = d.replace("{footer-style}","");
 
+        if (mode == "machines") {
+            d = d.replace("{account_note}",`<p>Note: <b>This is a machine account</b></p>`);
+        }
+
+        d = d.replace("{account_note}",'');
         for(var i = 0;i < u.sessions.length;i++) {
             let s = u.sessions[i];
             u.sessions[i].dateCreated = u.sessions[i].dateCreated.toLocaleString("en-US",{ timeZone: 'America/New_York' }) + " (NY time)";
@@ -193,7 +203,8 @@ class LoginUI {
             uname: uname,
             isCreator: editor.credentials.isCreator,
             currentTokenID: editor.token.id,
-            editingSelf: (u.name === editor.username)
+            editingSelf: (u.name === editor.username && u.machine === editor.machine),
+            machine: u.machine
         };
         
         replaceAll("{username}",u.name);
