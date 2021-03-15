@@ -20,7 +20,8 @@ function createAccount(force) {
     gm.request("api/createAccount",{
         body: {
             u: fields.uname.value.trim(),
-            p: fields.p.value.trim()
+            p: fields.p.value.trim(),
+            machine: (!!document.getElementById("machines-indicator"))
         },
         method: "POST",
         notifier: not,
