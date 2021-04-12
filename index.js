@@ -39,7 +39,8 @@ class Login {
 		if (typeof(useReplDatabases) === "object") {
 			this.db = useReplDatabases;
 		} else if (useReplDatabases !== false) {
-			if (!ReplITDB) ReplITDB = getREPLITDB();
+            let bd = "@replit/database";
+			if (!ReplITDB) ReplITDB = require(bd);
             this.db = new ReplITDB();
         }
 
@@ -802,36 +803,4 @@ class Login {
     }
 
 }
-
-function getREPLITDB() {
-    let bd = "@replit/database";
-    var og = require(bd);
-    return class DatabaseFixed extends og {
-        constructor(key) {
-            super(key);
-        }
-
-        /**
-        * Sets a key
-        * @param {String} key Key
-        * @param {any} value Value
-        */
-        async set(key, value) {
-            const strValue = JSON.stringify(value);
-            let opts = {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: encodeURIComponent(key) + "=" + encodeURIComponent(strValue),
-            };
-            if (!Util.request.request) {
-                bd = "request";
-                opts.request = require(bd);
-            }
-            await Util.request(this.key,opts)
-
-            return this;
-        }
-    }
-}
-
 module.exports = Login;
