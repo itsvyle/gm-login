@@ -17,7 +17,8 @@ class Login {
         token_lifetime,
         default_username,
         options,
-        remember_me_default
+        remember_me_default,
+        multisite
     } = {}) {
         this.remember_me = remember_me_default;
         if (typeof(onReady) !== "function") onReady = () => {};
@@ -28,6 +29,7 @@ class Login {
         }
 
         this.options = (!!options && typeof(options) === "object") ? options : {};
+        this.isMultisite = multisite || false;
 
         if (accounts_admin !== false) {
             flags = Object.assign({accounts_admin},flags);
@@ -281,8 +283,10 @@ class Login {
 
     checkReq(req) {
         let cookies = (!!req.headers.authorization) ? {token: req.headers.authorization} : Util.parseCookies(req.headers.cookie || "");
-        if (!cookies || !cookies.token) return null;
-        return this.check(cookies.token);
+        if (!cookies || (!cookies.token && (this.isMultisite && !cookies.multtoken))) return null;
+        let c = cookies.token;
+        if (!c && this.isMultisite) c = cookies.multtoken;
+        return this.check(c);
     }
 
     newFlags(val) {
@@ -503,7 +507,21 @@ class Login {
             }
             let r = (req.body.r == "1" || req.body.r === 1);
             par.login(u,p,r,ip).then((user) =>{
-                res.set("set-cookie",user.cookie);
+                if (par.isMultisite) {
+                    let dc;
+                    if (user.token.temp === true) {
+                        dc = "";
+                    } else {
+                        dc = ` Expires=${(new Date(user.token.expires)).toUTCString()};`;
+                    }
+                    dc = `multtoken=${user.token.t};${dc} Path=/; SameSite=None; Secure`;
+                    res.set("set-cookie",[
+                        user.cookie,
+                        dc
+                    ]);
+                } else {
+                    res.set("set-cookie",user.cookie);
+                }
                 res.redirect(req.body.to || "/");
                 res.end();
             }).catch((err) => {
